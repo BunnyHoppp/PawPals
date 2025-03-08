@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - PawPals</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            margin: 0 auto;
+            max-width: 300px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Create an Account</h1>
+<form id="signupForm">
+    <label for="username">Username:</label><br>
+    <input type="text" id="username" name="username" required><br><br>
+    <label for="number">Password:</label><br>
+    <input type="number" id="number" name="number" required><br><br>
+    <label for="password">Password:</label><br>
+    <input type="password" id="password" name="password" required><br><br>
+    <button type="submit">Sign Up</button>
+</form>
+
+<script>
+    // Event listener for sign-up form submission
+    document.getElementById('signupForm').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevent the form from refreshing the page
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const number = document.getElementById('number').value;
+
+        const newUser = {
+            username: username,
+            password: password,
+            number: number
+        };
+
+        // Send POST request to backend to create the user
+        const response = await fetch('http://localhost:8080/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newUser)
+        });
+
+        if (response.ok) {
+            alert('Sign Up successful! Please log in.');
+            window.location.href = 'index.html'; // Redirect to login page after successful sign-up
+        } else {
+            alert('Sign Up failed. Please try again.');
+        }
+    });
+</script>
+
+</body>
+</html>

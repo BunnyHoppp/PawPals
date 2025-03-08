@@ -1,0 +1,49 @@
+/* CSS styles for the pet listing and buttons */
+.pet {
+    display: flex;
+    flex-direction: column; /* Display the pet's details in a column */
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.pet-details {
+    display: flex;
+    flex-direction: column; /* Arrange pet details in columns */
+    margin-bottom: 10px;
+}
+
+.pet-details div {
+    margin-bottom: 5px; /* Add some spacing between each pet detail */
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-between; /* Space out buttons within the container */
+    width: 100%; /* Take full width of the pet item */
+}
+
+.book-btn {
+    background-color: #4CAF50; /* Green color for the Book button */
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.book-btn:hover {
+    background-color: #45a049;
+}
+
+.remove-btn {
+    background-color: #f44336; /* Red color for the Remove button */
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.remove-btn:hover {
+    background-color: #d32f2f;
+}

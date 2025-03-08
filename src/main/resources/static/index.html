@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawPals</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            margin: 0 auto;
+            max-width: 300px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Welcome to PawPals</h1>
+
+<!-- Login Form -->
+<div id="login">
+    <h2>Login</h2>
+    <form id="loginForm">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" required><br><br>
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" required><br><br>
+        <button type="submit">Login</button>
+    </form>
+</div>
+
+<!-- Sign Up Button -->
+<div id="signUpButton">
+    <h2>Don't have an account?</h2>
+    <button onclick="window.location.href='signup.html'">Sign Up</button>
+</div>
+
+<script>
+    // Event listener for login form submission
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        const credentials = {
+            username: username,  // Send username for login
+            password: password
+        };
+
+        // Send POST request to backend to authenticate the user
+        const response = await fetch('http://localhost:8080/users/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(credentials)
+        });
+
+        if (response.ok) {
+            const user = await response.json();
+            // Store user info or token in sessionStorage or localStorage as needed
+            sessionStorage.setItem('username', user.username);
+            sessionStorage.setItem('number', user.number);
+
+            alert('Login successful!');
+            // Redirect to another page after login (e.g., dashboard, homepage, etc.)
+            window.location.href = 'dashboard.html'; // Change this to your desired page
+        } else {
+            alert('Invalid credentials');
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawPals - Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<h1>Welcome to Your Dashboard, <span id="usernameDisplay"></span>!</h1>
+
+<!-- Add Pet Form Section -->
+<div id="addPetForm">
+    <h2>Add a Pet</h2>
+    <form id="petForm">
+        <input type="text" id="petName" placeholder="Pet Name" required><br>
+        <input type="date" id="startDate" required><br>
+        <input type="date" id="endDate" required><br>
+        <button type="submit">Add Pet</button>
+    </form>
+</div>
+
+<!-- Notifications Section -->
+<h2>Your Notifications</h2>
+<ul id="notifications">
+    <!-- Notifications will be listed here -->
+</ul>
+
+<h2>Pets Listed</h2>
+<ul id="pets">
+    <!-- Pets will be listed here -->
+</ul>
+
+<button class="logout-btn" id="logoutBtn">Log Out</button>
+
+<script>
+    // Fetch the logged-in user's username from sessionStorage
+    const loggedInUser = sessionStorage.getItem('username');
+    const loggedInNumber = sessionStorage.getItem('number');
+
+    if (loggedInUser) {
+        document.getElementById('usernameDisplay').textContent = loggedInUser;
+    } else {
+        // If no user is logged in, redirect to login page
+        window.location.href = 'index.html';
+    }
+
+    // Function to fetch and display all pets
+async function getPets() {
+    const response = await fetch('http://localhost:8080/pets', { method: 'GET' });
+
+    if (response.ok) {
+        const pets = await response.json();
+        const petsList = document.getElementById('pets');
+        petsList.innerHTML = ''; // Clear existing list
+
+        if (pets.length > 0) {
+            pets.forEach(pet => {
+                const li = document.createElement('li');
+                li.classList.add('pet');
+
+                // Create a container for pet details in columns
+                const petDetails = document.createElement('div');
+                petDetails.classList.add('pet-details');
+
+                const nameDiv = document.createElement('div');
+                nameDiv.textContent = `Pet Name: ${pet.name}`;
+                petDetails.appendChild(nameDiv);
+
+                const startDiv = document.createElement('div');
+                startDiv.textContent = `Start Date: ${pet.start}`;
+                petDetails.appendChild(startDiv);
+
+                const endDiv = document.createElement('div');
+                endDiv.textContent = `End Date: ${pet.end}`;
+                petDetails.appendChild(endDiv);
+
+                li.appendChild(petDetails);
+
+                // Create a container for buttons
+                const buttonContainer = document.createElement('div');
+                buttonContainer.classList.add('button-container');
+
+                // Check if the logged-in user is not the owner of the pet
+                if (pet.owner !== loggedInUser) {
+                    // Add the "Book" button for pets that are not owned by the current user
+                    const bookButton = document.createElement('button');
+                    bookButton.textContent = 'Book';
+                    bookButton.classList.add('book-btn');
+                    bookButton.onclick = () => bookPet(pet); // Pass the pet object to the bookPet function
+
+                    // Append the Book button to the container (left side)
+                    buttonContainer.appendChild(bookButton);
+                }
+
+                // Check if the current user is the owner of the pet
+                if (pet.owner === loggedInUser) {
+                    const removeButton = document.createElement('button');
+                    removeButton.textContent = 'Remove Pet';
+                    removeButton.classList.add('remove-btn');
+                    removeButton.onclick = () => removePet(pet.name); // Call removePet function with pet's name
+
+                    // Append the Remove button to the container (right side)
+                    buttonContainer.appendChild(removeButton);
+                }
+
+                // Append button container to the list item
+                li.appendChild(buttonContainer);
+                petsList.appendChild(li);
+            });
+        } else {
+            const li = document.createElement('li');
+            li.classList.add('pet');
+            li.textContent = 'No pets available.';
+            petsList.appendChild(li);
+        }
+    } else {
+        alert('Failed to fetch pets.');
+    }
+}
+
+
+    // Function to fetch and display notifications for the logged-in user
+    async function getNotifications() {
+        const response = await fetch(`http://localhost:8080/notifications/owner/${loggedInUser}`, { method: 'GET' });
+
+        if (response.ok) {
+            const notifications = await response.json();
+            const notificationsList = document.getElementById('notifications');
+            notificationsList.innerHTML = ''; // Clear existing notifications list
+
+            if (notifications.length > 0) {
+                notifications.forEach(notification => {
+                    const li = document.createElement('li');
+                    li.classList.add('notification');
+                    li.textContent = `Sitter: ${notification.sitter}, Number: ${notification.number}, From: ${notification.start}, To: ${notification.end}`;
+                    notificationsList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.classList.add('notification');
+                li.textContent = 'No notifications available.';
+                notificationsList.appendChild(li);
+            }
+        } else {
+            alert('Failed to fetch notifications.');
+        }
+    }
+
+    // Function to book a pet and create a notification
+    async function bookPet(pet) {
+        const notification = {
+            owner: pet.owner,  // The pet's owner
+            sitter: loggedInUser,  // The logged-in user is the sitter
+            number: loggedInNumber, // The number of the sitter
+            start: pet.start,  // Use the pet's start date
+            end: pet.end       // Use the pet's end date
+        };
+
+        // Send the notification to the backend to create it
+        const response = await fetch('http://localhost:8080/notifications', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(notification)
+        });
+
+        if (response.ok) {
+            alert('Pet booked successfully!');
+            getNotifications();  // Refresh the notifications list
+        } else {
+            alert('Failed to book pet.');
+        }
+    }
+
+    // Function to remove a pet by name
+    async function removePet(petName) {
+        const response = await fetch(`http://localhost:8080/pets/name/${petName}`, { method: 'DELETE' });
+
+        if (response.ok) {
+            alert('Pet removed successfully!');
+            getPets(); // Refresh the pet list
+        } else {
+            alert('Failed to remove pet.');
+        }
+    }
+
+    // Add a new pet to the system when the form is submitted
+    document.getElementById('petForm').addEventListener('submit', async (e) => {
+        e.preventDefault();  // Prevent default form submission
+
+        const petName = document.getElementById('petName').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        // Construct the pet object, automatically assign the logged-in user as the owner
+        const newPet = {
+            name: petName,
+            owner: loggedInUser,  // Automatically set the current user as the pet's owner
+            start: startDate,
+            end: endDate
+        };
+
+        // Send a POST request to add the new pet
+        const response = await fetch('http://localhost:8080/pets', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newPet)
+        });
+
+        if (response.ok) {
+            getPets();  // Refresh the pet list
+            document.getElementById('petForm').reset();  // Reset the form
+        } else {
+            alert('Failed to add pet.');
+        }
+    });
+
+    // Call the function to load pets and notifications when the page loads
+    window.onload = () => {
+        getPets();
+        getNotifications();
+    };
+
+    // Logout functionality
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        sessionStorage.removeItem('username');
+        window.location.href = 'index.html';
+    });
+</script>
+
+</body>
+</html>
